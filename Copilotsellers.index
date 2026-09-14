@@ -1,0 +1,586 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Copilot Prompts - Sellers</title>
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; font-family:'Segoe UI', Arial, sans-serif; }
+  body { background:#EBEBEB; color:#333; padding-bottom:40px; }
+
+  /* HEADER estilo Mercado Libre */
+  .top-sticky { position:sticky; top:0; z-index:100; box-shadow:0 2px 6px rgba(0,0,0,0.15); }
+  header {
+    background:#FFE600; padding:18px 24px; display:flex; align-items:center;
+    justify-content:space-between; flex-wrap:wrap; gap:10px;
+  }
+  .logo { display:flex; align-items:center; gap:10px; }
+  .logo-icon {
+    width:38px; height:38px; background:#333; border-radius:50%;
+    display:flex; align-items:center; justify-content:center; font-size:18px;
+  }
+  .logo h1 { font-size:20px; color:#333; }
+  .logo p { font-size:12px; color:#444; }
+  .fav-toggle {
+    background:#333; color:#FFE600; border:none; padding:8px 14px;
+    border-radius:20px; font-size:13px; cursor:pointer; font-weight:600;
+  }
+  .fav-toggle.active { background:#3483FA; color:#fff; }
+  .feedback-btn {
+  background:#00A650; color:#fff; border:none; padding:8px 14px;
+  border-radius:20px; font-size:13px; cursor:pointer; font-weight:600;
+  text-decoration:none; display:inline-flex; align-items:center; gap:4px;
+  transition:background .15s;
+}
+.feedback-btn:hover { background:#008C44; }
+
+  /* FILTER BAR */
+  .filter-bar { background:#fff; padding:14px 20px; }
+  .search-box {
+    width:100%; max-width:500px; margin:0 auto 14px auto; display:block;
+    padding:12px 16px; border-radius:8px; border:1px solid #ccc; font-size:14px;
+  }
+  .search-box:focus { outline:2px solid #3483FA; border-color:#3483FA; }
+
+  .filter-label { font-size:12px; color:#888; font-weight:700; text-transform:uppercase; margin:8px 0 6px 0; text-align:center; }
+  .filter-group { display:flex; flex-wrap:wrap; gap:8px; justify-content:center; margin-bottom:6px; }
+  .pill {
+    padding:7px 14px; border-radius:20px; border:1.5px solid #ddd; background:#fafafa;
+    cursor:pointer; font-size:13px; font-weight:600; color:#444; transition:all .15s;
+    white-space:nowrap;
+  }
+  .pill:hover { border-color:#3483FA; }
+  .pill.active { background:#3483FA; color:#fff; border-color:#3483FA; }
+  .pill.active.proceso { background:#333; border-color:#333; }
+
+  .result-count { text-align:center; font-size:13px; color:#777; margin:14px 0 4px 0; }
+
+  /* SECCIONES agrupadas por proceso */
+  .section { max-width:1200px; margin:24px auto 0 auto; padding:0 16px; }
+  .section-title {
+    font-size:17px; font-weight:700; color:#333; margin-bottom:12px;
+    display:flex; align-items:center; gap:8px; border-bottom:3px solid #FFE600; padding-bottom:6px;
+  }
+  .section-title .count { background:#333; color:#FFE600; font-size:12px; padding:2px 9px; border-radius:10px; }
+
+  .grid { display:grid; grid-template-columns:repeat(auto-fill, minmax(290px, 1fr)); gap:14px; }
+
+  .card {
+    background:#fff; border-radius:10px; padding:16px; box-shadow:0 1px 4px rgba(0,0,0,0.12);
+    border-top:5px solid #999; display:flex; flex-direction:column; justify-content:space-between;
+    transition:transform .15s, box-shadow .15s; position:relative;
+  }
+  .card:hover { transform:translateY(-3px); box-shadow:0 6px 16px rgba(0,0,0,0.15); }
+
+  .card.bienvenida { border-top-color:#2e8b57; }
+  .card.exploracion { border-top-color:#3483FA; }
+  .card.guia { border-top-color:#FFA000; }
+  .card.cierre { border-top-color:#8E24AA; }
+  .card.redaccion { border-top-color:#00A650; }
+  
+
+  .star-btn {
+    position:absolute; top:10px; right:10px; background:none; border:none;
+    font-size:18px; cursor:pointer; color:#ccc;
+  }
+  .star-btn.active { color:#FFA000; }
+
+  .badges { display:flex; flex-wrap:wrap; gap:6px; margin-bottom:10px; padding-right:24px; }
+  .badge { font-size:10.5px; padding:3px 9px; border-radius:12px; font-weight:700; color:#fff; white-space:nowrap; }
+  .badge.etapa-bienvenida { background:#2e8b57; }
+  .badge.etapa-exploracion { background:#3483FA; }
+  .badge.etapa-guia { background:#FFA000; }
+  .badge.etapa-cierre { background:#8E24AA; }
+  .badge.etapa-redaccion { background:#00A650; }
+  .badge.proceso { background:#333; }
+
+  .prompt-text { font-size:13.5px; color:#333; line-height:1.45; margin-bottom:14px; flex-grow:1; }
+
+  .copy-btn {
+    align-self:flex-start; padding:8px 14px; font-size:12.5px; border:none;
+    border-radius:20px; background:#FFE600; color:#333; cursor:pointer; font-weight:700;
+  }
+  .copy-btn:hover { background:#FFD400; }
+  .copy-btn.copied { background:#00A650; color:#fff; }
+
+  .no-results { text-align:center; color:#888; margin-top:50px; font-size:15px; }
+  footer { text-align:center; margin-top:40px; color:#999; font-size:12px; }
+</style>
+</head>
+<body>
+
+<div class="top-sticky">
+  <header>
+    <div class="logo">
+      <div class="logo-icon">🤝</div>
+      <div>
+        <h1>Copilot Prompts</h1>
+        <p>Gestión de Sellers</p>
+      </div>
+    </div>
+    <button class="fav-toggle" id="favToggle">⭐ Solo favoritos</button>
+    <a href="https://forms.gle/5fVtxAjnoeYsh4rD6" target="_blank" class="feedback-btn">📝 Dejar feedback</a>
+  </header>
+
+  <div class="filter-bar">
+    <input type="text" class="search-box" id="searchBox" placeholder="🔎 Buscar por palabra clave...">
+
+    <div class="filter-label">Proceso</div>
+    <div class="filter-group" id="procesoFilters"></div>
+
+    <div class="filter-label">Etapa de la conversación</div>
+    <div class="filter-group" id="etapaFilters"></div>
+
+    <div class="result-count" id="resultCount"></div>
+  </div>
+</div>
+
+<div id="container"></div>
+<div class="no-results" id="noResults" style="display:none;">No se encontraron prompts con esos filtros.</div>
+<footer>Hecho para el equipo de Gestión · Sellers</footer>
+
+<script>
+const prompts = [
+
+// ================= GENERAL =================
+{p:"general", e:"bienvenida", t:"Actúa como un experto en experiencia al cliente. Con base en el historial y el motivo de contacto de este caso, dame una frase de bienvenida que reconozca el contexto específico del usuario (no genérica) y transmita disposición genuina para ayudar. Indícame también qué tono emocional debo usar según su historial."},
+{p:"general", e:"bienvenida", t:"Analiza el estado emocional probable del usuario según las notas del caso y sus interacciones previas. Dame 2 alternativas de apertura: una si está tranquilo y otra si está frustrado o ha escalado el caso antes, explicando por qué cada una funciona."},
+
+{p:"general", e:"exploracion", t:"Actúa como un analista experto en resolución de casos. Identifica la causa raíz más probable del contacto, señala qué información relevante podría no haber sido mencionada aún por el usuario, y genera 5 preguntas estratégicas ordenadas por prioridad para confirmar el diagnóstico antes de avanzar a la solución."},
+{p:"general", e:"exploracion", t:"Revisa el caso y dime: (1) qué información ya está registrada y no debo volver a preguntar, (2) qué causas alternativas existen además de la que el usuario menciona como motivo principal, y (3) qué pregunta de una sola vez descartaría la mayor cantidad de causas posibles."},
+{p:"general", e:"exploracion", t:"Ponte en el lugar de un usuario con este perfil e historial. ¿Qué necesidad no está diciendo explícitamente pero probablemente le preocupa? Dame una pregunta empática para descubrirla sin que se sienta cuestionado."},
+
+{p:"general", e:"guia", t:"Actúa como asesor experto senior. Explica la mejor solución para este caso en lenguaje simple, sin tecnicismos. Luego dame una versión aún más resumida de máximo 3 líneas para usuarios con poca paciencia."},
+{p:"general", e:"guia", t:"Antes de darme la solución, evalúa si existen restricciones, políticas o excepciones aplicables a este caso específico que puedan cambiar la recomendación estándar. Luego dame la solución final considerando esas restricciones."},
+{p:"general", e:"guia", t:"Anticipa las 3 objeciones más probables que este usuario tendría frente a la solución propuesta, y para cada una dame una respuesta clara, empática y basada en los hechos del caso."},
+
+{p:"general", e:"cierre", t:"Redacta un resumen breve (máximo 4 líneas) de todo lo acordado en esta llamada, verificando que no se omita ningún compromiso, fecha o próximo paso mencionado durante la conversación."},
+{p:"general", e:"cierre", t:"Dame 2 preguntas de verificación para confirmar que el usuario entendió completamente la solución y los próximos pasos antes de finalizar, adaptadas a este caso."},
+{p:"general", e:"cierre", t:"Genera una frase de cierre que refuerce confianza, deje claro el canal de seguimiento si aplica, y transmita disposición para futuras consultas, sin sonar genérica."},
+
+// ============ REDACCIÓN GENERAL ============
+{p:"general", e:"redaccion", t:"Actúa como especialista en comunicación escrita de Mercado Libre. Redacta un correo electrónico de respuesta para este caso, con tono cercano, claro, empático y resolutivo, siguiendo el estilo Meli: validando primero la situación del usuario, explicando después la solución de forma simple, y cerrando con un mensaje cálido que refuerce confianza. Estructura: saludo personalizado, validación emocional, cuerpo con la solución, cierre y firma."},
+{p:"general", e:"redaccion", t:"Revisa y mejora el siguiente borrador de correo para que sea más claro, empático y esté alineado al estilo de comunicación de Mercado Libre. Corrige gramática y ortografía, elimina tecnicismos innecesarios, y ajusta el tono si es demasiado frío o informal: [PEGAR BORRADOR AQUÍ]"},
+{p:"general", e:"redaccion", t:"Redacta un correo para comunicar una noticia negativa o una respuesta que el usuario no espera. Usa un tono empático, honesto y directo, evitando falsas expectativas, pero cuidando el vínculo de confianza, siguiendo el estilo Meli."},
+{p:"general", e:"redaccion", t:"Dame 3 versiones de la misma respuesta por correo con distinto nivel de formalidad (cercano, neutral, formal), manteniendo el estilo Meli, para elegir la que mejor se adapte al perfil de este usuario."},
+{p:"general", e:"redaccion", t:"Revisa este correo antes de enviarlo: ¿el tono es empático?, ¿hay tecnicismos que deba simplificar?, ¿la estructura es clara?, ¿el cierre genera confianza? Dame el correo corregido con las mejoras aplicadas: [PEGAR BORRADOR AQUÍ]"},
+
+// ================= POINT - CÓMO ADQUIRIR DISPOSITIVO =================
+{p:"point-adquirir", e:"bienvenida", t:"El usuario contacta interesado en adquirir un dispositivo Point. Dame una apertura cálida que demuestre entusiasmo por ayudarle a empezar a cobrar con Mercado Pago, preguntando sobre su tipo de negocio para orientarlo mejor."},
+{p:"point-adquirir", e:"bienvenida", t:"El vendedor quiere comprar un Point pero tiene dudas. Dame una bienvenida que transmita confianza y lo invite a hacer todas sus preguntas sobre el dispositivo antes de tomar la decisión."},
+{p:"point-adquirir", e:"exploracion", t:"Actúa como asesor comercial de Point. Dame las preguntas clave para entender qué modelo de Point le conviene al usuario según: volumen de ventas, tipo de negocio, necesidad de movilidad y presupuesto."},
+{p:"point-adquirir", e:"exploracion", t:"El usuario pregunta por precios y promociones de Point. ¿Qué debo preguntarle para verificar si tiene alguna promoción activa en su cuenta o si aplica para algún descuento especial?"},
+{p:"point-adquirir", e:"exploracion", t:"Dame las preguntas para identificar si el usuario necesita: Point Smart, Point Pro o Point Blue según sus necesidades de conectividad (WiFi, chip de datos, Bluetooth) y tipo de comprobantes que necesita emitir."},
+{p:"point-adquirir", e:"guia", t:"Explica de forma clara y sencilla las diferencias entre los modelos de Point disponibles (características, precios, ventajas de cada uno) para que el usuario pueda elegir el más adecuado para su negocio."},
+{p:"point-adquirir", e:"guia", t:"El usuario quiere comprar un Point. Guíalo paso a paso sobre cómo realizar la compra desde la app de Mercado Pago, incluyendo dónde encontrar la opción y qué métodos de pago puede usar."},
+{p:"point-adquirir", e:"guia", t:"El usuario pregunta sobre promociones al comprar el dispositivo. Explícale cómo verificar las promociones disponibles en su cuenta y cómo descargar la factura de compra desde CX una vez realizada."},
+{p:"point-adquirir", e:"guia", t:"Dame la información sobre stock disponible, tiempos de entrega estimados y opciones de envío para la compra de un Point, según la zona del usuario."},
+{p:"point-adquirir", e:"cierre", t:"El usuario decidió comprar un Point. Dame una frase de cierre que confirme los próximos pasos (tiempo de envío, cómo activarlo cuando llegue) y lo motive a comenzar a cobrar."},
+{p:"point-adquirir", e:"cierre", t:"Resume la información brindada sobre el Point que el usuario eligió y confirma que entendió el proceso de compra, tiempos de entrega y cómo activarlo."},
+{p:"point-adquirir", e:"redaccion", t:"Redacta un correo confirmando la compra del dispositivo Point, incluyendo: modelo adquirido, tiempo estimado de entrega, y pasos para activarlo cuando lo reciba. Tono cercano estilo Meli."},
+
+// ================= POINT - CÓMO USAR DISPOSITIVO =================
+{p:"point-usar", e:"bienvenida", t:"El usuario tiene dudas sobre cómo usar su Point. Dame una apertura empática reconociendo que al principio puede parecer complicado, pero que lo guiaremos paso a paso."},
+{p:"point-usar", e:"bienvenida", t:"El vendedor recién recibió su Point y no sabe cómo empezar. Dame una bienvenida entusiasta que lo motive a dar sus primeros pasos cobrando con el dispositivo."},
+{p:"point-usar", e:"exploracion", t:"Actúa como especialista en Point. Identifica si la consulta es sobre: activación del dispositivo, tarjetas aceptadas, comisiones, recargas/pagos de servicios, propinas, clave de seguridad o bloqueo por robo. Dame las preguntas para confirmar el escenario exacto."},
+{p:"point-usar", e:"exploracion", t:"El usuario tiene problemas para activar su Point. ¿Qué preguntas debo hacer para diagnosticar si es un problema de vinculación, conexión o configuración inicial?"},
+{p:"point-usar", e:"exploracion", t:"El usuario quiere saber qué tarjetas acepta su Point. Pregúntale qué modelo tiene para darle información precisa sobre los medios de pago compatibles."},
+{p:"point-usar", e:"guia", t:"Explica paso a paso cómo activar un Point por primera vez: descarga de app, vinculación, conexión y primera prueba de cobro."},
+{p:"point-usar", e:"guia", t:"El usuario pregunta sobre las comisiones del Point. Explícale de forma clara cómo funcionan las tasas según el medio de pago (débito, crédito, cuotas) y cuándo se descuentan."},
+{p:"point-usar", e:"guia", t:"Explica cómo configurar y cobrar propinas con el Point, incluyendo dónde activar la opción y cómo aparece para el cliente al momento de pagar."},
+{p:"point-usar", e:"guia", t:"El usuario quiere bloquear su Point por robo. Explícale que únicamente puede ser bloqueado cuando presente la denuncia policial, y guíalo sobre los pasos a seguir."},
+{p:"point-usar", e:"guia", t:"Explica cómo cambiar la clave de seguridad del Point y qué hacer si el usuario la olvidó o el dispositivo quedó bloqueado por intentos fallidos."},
+{p:"point-usar", e:"guia", t:"Dame una explicación simple sobre cómo realizar recargas de celular y pagos de servicios desde el Point, y qué comisiones aplican para estas operaciones."},
+{p:"point-usar", e:"cierre", t:"Confirma que el usuario entendió cómo usar la funcionalidad de su Point que consultó, y ofrécele un canal de contacto si tiene más dudas cuando empiece a operar."},
+{p:"point-usar", e:"cierre", t:"Resume las funcionalidades principales que revisamos del Point y dame una frase de cierre motivándolo a empezar a cobrar con confianza."},
+{p:"point-usar", e:"redaccion", t:"Redacta un correo explicando las funcionalidades básicas del Point (cómo cobrar, tarjetas aceptadas, comisiones) en tono amigable y fácil de entender para un vendedor nuevo."},
+
+// ================= POINT - MANTENIMIENTO DEL DISPOSITIVO =================
+{p:"point-mantenimiento", e:"bienvenida", t:"El usuario reporta un problema técnico con su Point. Dame una apertura empática reconociendo que esto puede afectar sus ventas y que vamos a solucionarlo lo antes posible."},
+{p:"point-mantenimiento", e:"bienvenida", t:"El vendedor contacta porque su Point no funciona correctamente. Dame una bienvenida que transmita urgencia en ayudarlo para que pueda seguir cobrando."},
+      
+{p:"point-mantenimiento", e:"exploracion", t:"Actúa como soporte técnico de Point. Identifica si el problema es: falla de conectividad (Bluetooth/WiFi), problemas de batería, problemas de conexión, necesidad de cambio de dispositivo, cambio de chip o pedido de rollos de papel. Dame las preguntas diagnósticas clave."},
+{p:"point-mantenimiento", e:"exploracion", t:"El Point del usuario no conecta. Dame las preguntas para identificar si es problema de Bluetooth, WiFi, chip de datos o si necesita actualización de software."},
+{p:"point-mantenimiento", e:"exploracion", t:"El usuario dice que la batería de su Point dura muy poco. ¿Qué preguntas debo hacer para determinar si es uso normal, falla de batería o si requiere recambio?"},
+{p:"point-mantenimiento", e:"exploracion", t:"Dame las preguntas para verificar si el Point del usuario está dentro del período de garantía (1 año) antes de ofrecer un recambio."},
+{p:"point-mantenimiento", e:"guia", t:"El Point tiene problemas de conectividad Bluetooth. Dame los pasos de troubleshooting: verificar distancia, reiniciar dispositivos, desvincular y volver a vincular, actualizar app."},
+{p:"point-mantenimiento", e:"guia", t:"El Point no conecta al WiFi. Guía al usuario paso a paso para verificar la red, olvidar y reconectar la red WiFi, y verificar si el problema es del dispositivo o de la conexión."},
+{p:"point-mantenimiento", e:"guia", t:"El usuario necesita cambiar el chip de conectividad de su Point. Explícale cómo solicitarlo y los tiempos de envío del nuevo chip."},
+{p:"point-mantenimiento", e:"guia", t:"Explica cómo solicitar rollos de papel para el Point: dónde hacer el pedido, costo (si aplica) y tiempos de entrega."},
+{p:"point-mantenimiento", e:"guia", t:"El Point del usuario requiere recambio y está dentro de garantía (1 año). Explícale el proceso completo: cómo solicitarlo, qué pasa con el dispositivo actual y tiempos de entrega del nuevo."},
+{p:"point-mantenimiento", e:"guia", t:"El Point está fuera de garantía y necesita reemplazo. Explícale las opciones disponibles: comprar uno nuevo, promociones vigentes, y cómo migrar su configuración al nuevo dispositivo."},
+{p:"point-mantenimiento", e:"guia", t:"Dame los pasos para que el usuario actualice el software de su Point y resuelva posibles errores de funcionamiento."},
+{p:"point-mantenimiento", e:"cierre", t:"Confirma que el problema técnico del Point quedó resuelto o que el proceso de recambio/solicitud fue iniciado correctamente. Dame una frase de cierre asegurando seguimiento."},
+{p:"point-mantenimiento", e:"cierre", t:"El usuario debe esperar un recambio o chip. Dame un cierre con los tiempos reales de espera y qué hacer si no lo recibe en el plazo indicado."},
+{p:"point-mantenimiento", e:"redaccion", t:"Redacta un correo confirmando la solicitud de recambio de Point, incluyendo: motivo del cambio, tiempo estimado de entrega, y qué hacer con el dispositivo actual. Tono Meli."},
+{p:"point-mantenimiento", e:"redaccion", t:"Redacta un correo con los pasos de troubleshooting para problemas de conectividad del Point, en formato fácil de seguir paso a paso."},
+
+// ================= POINT - LOGÍSTICA =================
+{p:"point-logistica", e:"bienvenida", t:"El usuario contacta por el estado de envío de su Point. Dame una apertura que demuestre que entendemos su ansiedad por recibir el dispositivo y empezar a cobrar."},
+{p:"point-logistica", e:"bienvenida", t:"El vendedor dice que no recibió su Point pero figura como entregado. Dame una bienvenida empática reconociendo la frustración y asegurando que vamos a investigar."},
+{p:"point-logistica", e:"exploracion", t:"Actúa como especialista en logística de Point. Identifica si el caso es: consulta de estado de envío, cancelación de compra, dispositivo no entregado, recolección en sucursal, fallo en envío, solicitud de reembolso o devolución. Dame las preguntas clave."},
+{p:"point-logistica", e:"exploracion", t:"El usuario quiere cancelar la compra de su Point. Pregúntale el motivo y verifica en qué estado está el envío para determinar si es posible la cancelación o si debe esperar y devolver."},
+{p:"point-logistica", e:"exploracion", t:"El Point figura como entregado pero el usuario no lo recibió. Dame las preguntas para recopilar información: dirección de entrega, quién podría haberlo recibido, si hay portería/vecinos, etc."},
+{p:"point-logistica", e:"exploracion", t:"El usuario quiere devolver su Point. Pregúntale el motivo y verifica si está dentro del plazo permitido para devolución según el site."},
+      
+{p:"point-logistica", e:"guia", t:"Explica cómo rastrear el estado de envío de un Point desde la app de Mercado Pago y qué significa cada estado (preparando, en camino, en sucursal, entregado)."},
+{p:"point-logistica", e:"guia", t:"El usuario quiere retirar su Point en una sucursal. Explícale cómo ubicar la sucursal, qué documentación llevar y el horario de atención."},
+{p:"point-logistica", e:"guia", t:"El envío del Point tuvo un fallo (devuelto al remitente, dirección incorrecta). Explica las opciones: corregir dirección y reenviar, o solicitar reembolso."},
+{p:"point-logistica", e:"guia", t:"El usuario está dentro de plazo y quiere devolver el Point. Guíalo sobre cómo generar la etiqueta de devolución y dónde entregar el paquete."},
+{p:"point-logistica", e:"guia", t:"El Point figura como entregado pero el usuario no lo recibió. Explica el proceso para reenviar el pedido y los tiempos estimados."},
+{p:"point-logistica", e:"guia", t:"El usuario solicita reembolso de su compra de Point. Explica el proceso: si ya pasó el plazo de devolución normal, verifica si aplica devolución desde One Tool en situaciones excepcionales autorizadas por TL."},
+{p:"point-logistica", e:"cierre", t:"Confirma el estado actual del envío/devolución/reembolso del Point y dame los tiempos reales que debe esperar el usuario. Incluye qué hacer si hay algún problema."},
+{p:"point-logistica", e:"cierre", t:"El caso de logística quedó resuelto (reenvío, reembolso, etiqueta generada). Dame un cierre personalizado confirmando la solución y próximos pasos."},
+{p:"point-logistica", e:"redaccion", t:"Redacta un correo confirmando el reenvío del Point, con nuevo tiempo estimado de entrega y número de seguimiento. Tono cercano Meli."},
+{p:"point-logistica", e:"redaccion", t:"Redacta un correo confirmando el reembolso de la compra del Point, incluyendo monto, plazo de acreditación y agradecimiento por su interés en Mercado Pago."},
+
+// ================= POINT - RESELLERS =================
+{p:"point-resellers", e:"bienvenida", t:"El usuario contacta con dudas sobre el programa de revendedores de Point. Dame una apertura que demuestre entusiasmo por su interés en ser parte del programa."},
+{p:"point-resellers", e:"bienvenida", t:"El revendedor tiene problemas con sus premiaciones. Dame una bienvenida empática reconociendo la importancia de sus comisiones y que vamos a revisar su caso."},
+{p:"point-resellers", e:"exploracion", t:"Actúa como especialista en el programa Resellers. Identifica si la consulta es sobre: cómo acceder al programa, capacitaciones, premiaciones no acreditadas, cómo registrar un Point vendido, o dudas generales del programa. Dame las preguntas clave."},
+{p:"point-resellers", e:"exploracion", t:"El revendedor dice que no le acreditaron una premiación. Dame las preguntas para verificar: cuándo registró el Point, si el comprador activó el dispositivo, y si cumplió los requisitos del programa."},
+{p:"point-resellers", e:"exploracion", t:"El usuario quiere ser revendedor de Point. Pregúntale sobre su perfil: si tiene negocio propio, experiencia en ventas, y zona geográfica para orientarlo correctamente."},
+{p:"point-resellers", e:"guia", t:"Explica paso a paso cómo inscribirse en el programa de revendedores de Point: requisitos, proceso de registro y beneficios del programa."},
+{p:"point-resellers", e:"guia", t:"El revendedor quiere acceder a las capacitaciones. Explícale dónde encontrarlas, qué temas cubren y si hay certificaciones disponibles."},
+{p:"point-resellers", e:"guia", t:"Explica cómo registrar correctamente un Point vendido para que la premiación se acredite: pasos en la app, datos necesarios del comprador y tiempos de acreditación."},
+{p:"point-resellers", e:"guia", t:"El revendedor tiene una premiación pendiente. Explícale los requisitos que debe cumplir el comprador (activación, primer cobro) y los tiempos normales de acreditación."},
+{p:"point-resellers", e:"guia", t:"El usuario quiere dejar de recibir contactos de revendedores de Point. Explícale cómo gestionar esta solicitud y los canales para reportarlo."},
+{p:"point-resellers", e:"cierre", t:"Confirma que el revendedor entendió el proceso de registro de ventas y premiaciones. Dame un cierre motivándolo a seguir vendiendo."},
+{p:"point-resellers", e:"cierre", t:"El caso de premiación no acreditada fue escalado o resuelto. Dame un cierre con los tiempos de resolución y qué esperar."},
+{p:"point-resellers", e:"redaccion", t:"Redacta un correo de bienvenida al programa de revendedores, explicando los beneficios, cómo empezar y dónde encontrar recursos de capacitación. Tono motivador estilo Meli."},
+{p:"point-resellers", e:"redaccion", t:"Redacta un correo explicando por qué una premiación no fue acreditada (requisitos no cumplidos) y qué debe hacer el revendedor para las próximas ventas."},
+
+// ================= FUNCIONALIDADES POINT =================
+{p:"funcionalidades-point", e:"bienvenida", t:"El usuario tiene dudas sobre las funcionalidades de su Point. Dame una apertura que demuestre disposición para ayudarlo a sacar el máximo provecho de su dispositivo."},
+{p:"funcionalidades-point", e:"bienvenida", t:"El vendedor quiere conocer todas las funciones de su Point. Dame una bienvenida entusiasta invitándolo a descubrir todo lo que puede hacer con su dispositivo."},
+{p:"funcionalidades-point", e:"exploracion", t:"Actúa como experto en funcionalidades Point. Identifica si la consulta es sobre: vinculación/desvinculación, conexión Bluetooth/WiFi, actualización de software, errores de lectura de tarjetas, o configuraciones avanzadas. Dame las preguntas diagnósticas clave."},
+{p:"funcionalidades-point", e:"exploracion", t:"El Point del usuario tiene errores de lectura de tarjetas. Dame las preguntas para identificar si es problema del chip, banda magnética, contactless o del dispositivo mismo."},
+{p:"funcionalidades-point", e:"exploracion", t:"El usuario quiere desvincular su Point de su cuenta. Pregúntale el motivo para orientarlo correctamente (venta del dispositivo, cambio de cuenta, problema técnico)."},
+{p:"funcionalidades-point", e:"guia", t:"Explica paso a paso cómo vincular un Point a la cuenta de Mercado Pago: desde la app, búsqueda del dispositivo, confirmación y prueba de conexión."},
+{p:"funcionalidades-point", e:"guia", t:"El usuario necesita desvincular su Point. Guíalo sobre cómo hacerlo desde la app y qué considerar antes (cobros pendientes, configuraciones que se perderán)."},
+{p:"funcionalidades-point", e:"guia", t:"El Point no lee tarjetas correctamente. Dame los pasos de troubleshooting: limpiar lector, verificar tarjeta del cliente, probar con otra tarjeta, reiniciar dispositivo, actualizar software."},
+{p:"funcionalidades-point", e:"guia", t:"Explica cómo actualizar el software del Point manualmente y cómo activar las actualizaciones automáticas para evitar problemas futuros."},
+{p:"funcionalidades-point", e:"guia", t:"El usuario tiene problemas de conexión Bluetooth entre su celular y el Point. Dame los pasos ordenados para solucionar: verificar Bluetooth activo, distancia, olvidar dispositivo y volver a emparejar."},
+{p:"funcionalidades-point", e:"guia", t:"Explica las diferencias de conectividad entre los modelos de Point (Bluetooth, WiFi, chip de datos) y cómo configurar cada tipo de conexión."},
+{p:"funcionalidades-point", e:"cierre", t:"Confirma que la funcionalidad del Point quedó configurada/resuelta correctamente. Dame una frase de cierre invitando al usuario a explorar otras funciones."},
+{p:"funcionalidades-point", e:"cierre", t:"El problema de lectura o conexión del Point fue resuelto. Dame un cierre que genere confianza para que el usuario siga cobrando sin preocupaciones."},
+{p:"funcionalidades-point", e:"redaccion", t:"Redacta un correo con las instrucciones para vincular/desvincular un Point, en formato paso a paso fácil de seguir."},
+{p:"funcionalidades-point", e:"redaccion", t:"Redacta un correo explicando las funcionalidades avanzadas del Point (propinas, recargas, pagos de servicios) para que el vendedor aproveche todo su potencial."},
+
+// ================= SELLER WALLET (QR) =================
+{p:"seller-wallet", e:"bienvenida", t:"El usuario tiene dudas sobre cómo cobrar con QR de Mercado Pago. Dame una apertura amigable explicando que es una forma simple y sin costo de dispositivo para empezar a cobrar."},
+{p:"seller-wallet", e:"bienvenida", t:"El vendedor quiere implementar QR en su negocio. Dame una bienvenida entusiasta destacando los beneficios de cobrar con QR."},
+{p:"seller-wallet", e:"exploracion", t:"Actúa como especialista en Seller Wallet/QR. Identifica si la consulta es sobre: cómo generar el QR, cómo cobrar, comisiones del QR, problemas para recibir pagos, o cómo mostrar el QR en el negocio. Dame las preguntas clave."},
+{p:"seller-wallet", e:"exploracion", t:"El usuario tiene problemas para cobrar con QR. Dame las preguntas para identificar si es problema de generación del QR, escaneo por parte del cliente, o acreditación del pago."},
+{p:"seller-wallet", e:"exploracion", t:"El vendedor quiere saber si le conviene QR o Point. Pregúntale sobre su volumen de ventas, tipo de clientes y si necesita aceptar tarjetas para orientarlo."},
+{p:"seller-wallet", e:"guia", t:"Explica paso a paso cómo generar y descargar el QR de Mercado Pago desde la app para empezar a cobrar en el negocio."},
+{p:"seller-wallet", e:"guia", t:"Explica cómo funciona el proceso de cobro con QR: el cliente escanea, ingresa el monto, paga y el vendedor recibe la confirmación. Incluye qué ve cada parte."},
+{p:"seller-wallet", e:"guia", t:"Dame una comparación clara entre cobrar con QR vs Point: costos, medios de pago aceptados, velocidad de acreditación y cuándo conviene cada uno."},
+{p:"seller-wallet", e:"guia", t:"Explica las comisiones que aplican al cobrar con QR de Mercado Pago y cómo se descuentan del monto cobrado."},
+{p:"seller-wallet", e:"guia", t:"El usuario quiere imprimir su QR para mostrarlo en el negocio. Explícale cómo descargarlo en alta calidad y recomendaciones para exhibirlo."},
+{p:"seller-wallet", e:"cierre", t:"Confirma que el usuario entendió cómo cobrar con QR y ya tiene su código listo. Dame un cierre motivándolo a hacer su primer cobro."},
+{p:"seller-wallet", e:"cierre", t:"Resume las ventajas del QR que revisamos y dame una frase de cierre invitando al vendedor a contactarnos si tiene dudas cuando empiece a usarlo."},
+{p:"seller-wallet", e:"redaccion", t:"Redacta un correo explicando cómo empezar a cobrar con QR de Mercado Pago: pasos para generar el código, cómo funciona el cobro y tips para mostrarlo en el negocio. Tono Meli."},
+
+// ================= ACREDITACIÓN DEL COBRO =================
+{p:"acreditacion-cobro", e:"bienvenida", t:"El vendedor contacta porque un cobro no se acreditó. Dame una apertura empática reconociendo que esto afecta directamente su flujo de caja y que vamos a revisarlo de inmediato."},
+{p:"acreditacion-cobro", e:"bienvenida", t:"El usuario está preocupado porque hizo una venta pero no ve el dinero. Dame una bienvenida que transmita calma y seguridad de que vamos a rastrear su cobro."},
+{p:"acreditacion-cobro", e:"exploracion", t:"Actúa como especialista en acreditación de cobros. Identifica si el caso es: cobro no acreditado, cobro rechazado, cobro duplicado, demora en acreditación, o problema con comprobante. Dame las preguntas diagnósticas clave."},
+{p:"acreditacion-cobro", e:"exploracion", t:"El vendedor dice que un cobro no se acreditó. Dame las preguntas para recopilar la evidencia: fecha y hora exacta, monto, medio de pago usado (Point/QR), si tiene el comprobante y si el cliente confirmó que le debitaron."},
+{p:"acreditacion-cobro", e:"exploracion", t:"El usuario reporta un cobro duplicado. Pregúntale los detalles de ambas transacciones para verificar si realmente es duplicado o son dos cobros diferentes."},
+{p:"acreditacion-cobro", e:"exploracion", t:"El cobro aparece como rechazado. Dame las preguntas para identificar el motivo: tipo de tarjeta, si el cliente tiene fondos, si hubo error en el Point/QR."},
+{p:"acreditacion-cobro", e:"guia", t:"Explica los plazos normales de acreditación de cobros según el medio de pago: débito, crédito, cuotas, QR. Aclara cuándo se considera realmente una demora anormal."},
+{p:"acreditacion-cobro", e:"guia", t:"El cobro fue rechazado por fondos insuficientes o tarjeta inválida. Explícale al vendedor qué pasó y qué opciones tiene (pedir otro medio de pago al cliente)."},
+{p:"acreditacion-cobro", e:"guia", t:"El cobro esta en proceso y el vendedor quiere saber cuándo se acredita. Explica el flujo de acreditación y dónde puede ver el estado en la app."},
+{p:"acreditacion-cobro", e:"guia", t:"Se confirmó un cobro duplicado. Explica el proceso de devolución de uno de los cobros y los tiempos para que el dinero vuelva al cliente."},
+{p:"acreditacion-cobro", e:"guia", t:"El vendedor necesita un comprobante de cobro. Explícale cómo descargar el comprobante desde la app o desde el historial de movimientos."},
+{p:"acreditacion-cobro", e:"guia", t:"El cobro se acreditó pero el monto es incorrecto (descuento de comisiones). Explica cómo se compone el monto neto: cobro bruto menos comisiones según el medio de pago."},
+{p:"acreditacion-cobro", e:"cierre", t:"Confirma el estado del cobro consultado (acreditado, en proceso, rechazado) y dame un cierre con los tiempos reales si debe esperar."},
+{p:"acreditacion-cobro", e:"cierre", t:"El problema de acreditación fue resuelto o escalado. Dame un cierre que genere tranquilidad sobre su dinero y los próximos pasos."},
+{p:"acreditacion-cobro", e:"redaccion", t:"Redacta un correo explicando el estado de un cobro que estaba pendiente de acreditación, confirmando que ya se acreditó o los tiempos estimados si aún está en proceso. Tono Meli."},
+{p:"acreditacion-cobro", e:"redaccion", t:"Redacta un correo explicando por qué un cobro fue rechazado y qué puede hacer el vendedor en futuros casos similares."},
+
+// ================= ANULACIÓN DE COBROS =================
+{p:"anulacion-cobros", e:"bienvenida", t:"El vendedor necesita anular un cobro o devolver dinero a un cliente. Dame una apertura que demuestre disposición para ayudarlo con el proceso de forma rápida."},
+{p:"anulacion-cobros", e:"bienvenida", t:"El usuario hizo un cobro por error y quiere revertirlo. Dame una bienvenida tranquilizadora asegurando que podemos ayudarlo a devolver el dinero al cliente."},
+{p:"anulacion-cobros", e:"exploracion", t:"Actúa como especialista en anulaciones y devoluciones. Identifica si el caso es: anulación de cobro reciente, devolución parcial, devolución total, cobro por monto incorrecto, o consulta de tiempos de devolución. Dame las preguntas clave."},
+{p:"anulacion-cobros", e:"exploracion", t:"El vendedor quiere devolver un cobro. Dame las preguntas para recopilar: fecha del cobro, monto, motivo de la devolución, si es total o parcial, y si el cliente está presente."},
+{p:"anulacion-cobros", e:"exploracion", t:"El cobro ya fue devuelto pero el cliente dice que no le llegó el dinero. Pregúntale hace cuánto se hizo la devolución para verificar si está dentro del plazo normal."},
+{p:"anulacion-cobros", e:"guia", t:"Explica paso a paso cómo anular un cobro reciente desde la app de Mercado Pago: dónde encontrar la transacción, opción de devolver y confirmación."},
+{p:"anulacion-cobros", e:"guia", t:"El vendedor necesita hacer una devolución parcial. Explícale cómo hacerlo y las consideraciones sobre el monto a devolver."},
+{p:"anulacion-cobros", e:"guia", t:"Explica los tiempos de devolución según el medio de pago original: débito (inmediato a 72hs), crédito (puede demorar hasta el próximo cierre de tarjeta), etc."},
+{p:"anulacion-cobros", e:"guia", t:"El cobro fue por un monto incorrecto (cobró de más). Explica las opciones: devolver la diferencia o devolver todo y volver a cobrar el monto correcto."},
+{p:"anulacion-cobros", e:"guia", t:"La devolución fue procesada pero el cliente no ve el dinero. Explica los tiempos según el banco del cliente y qué hacer si excede el plazo normal."},
+{p:"anulacion-cobros", e:"cierre", t:"Confirma que la devolución fue procesada exitosamente. Dame un cierre con los tiempos que debe esperar el cliente para ver el dinero."},
+{p:"anulacion-cobros", e:"cierre", t:"Resume el proceso de devolución realizado y dame una frase de cierre explicando cómo evitar cobros erróneos en el futuro."},
+{p:"anulacion-cobros", e:"redaccion", t:"Redacta un correo confirmando la devolución de un cobro, incluyendo: monto devuelto, medio de pago original, tiempo estimado de acreditación al cliente. Tono Meli."},
+{p:"anulacion-cobros", e:"redaccion", t:"Redacta un correo explicando los tiempos de devolución según el medio de pago, para que el vendedor pueda informar a su cliente."},
+
+// ================= MI DINERO =================
+{p:"mi-dinero", e:"bienvenida", t:"El vendedor tiene dudas sobre su dinero en Mercado Pago. Dame una apertura que transmita seguridad sobre sus fondos y disposición para aclarar cualquier duda."},
+{p:"mi-dinero", e:"bienvenida", t:"El usuario está preocupado porque tiene dinero retenido. Dame una bienvenida empática reconociendo la importancia de su flujo de caja y que vamos a revisar el motivo de la retención."},
+{p:"mi-dinero", e:"exploracion", t:"Actúa como especialista en gestión de dinero. Identifica si el caso es: dinero retenido, adelanto de cobros, plazos de liberación, débitos por reclamos, consulta de saldo, o movimiento no reconocido. Dame las preguntas diagnósticas."},
+{p:"mi-dinero", e:"exploracion", t:"El vendedor tiene dinero retenido. Dame las preguntas para identificar el motivo: si es por reclamo de comprador, verificación de seguridad, o plazo normal de liberación de cobros."},
+{p:"mi-dinero", e:"exploracion", t:"El usuario quiere adelantar sus cobros. Pregúntale cuánto necesita adelantar y verifica si tiene cobros pendientes de acreditación que puedan adelantarse."},
+{p:"mi-dinero", e:"exploracion", t:"El vendedor ve un débito en su cuenta que no reconoce. Dame las preguntas para identificar si es por: comisiones, reclamo perdido, contracargo, o error."},
+{p:"mi-dinero", e:"guia", t:"Explica cómo funcionan los plazos de liberación de dinero según el tipo de cobro y la antigüedad del vendedor en Mercado Pago."},
+{p:"mi-dinero", e:"guia", t:"El dinero está retenido por un reclamo de comprador. Explica el proceso: qué debe hacer el vendedor para responder el reclamo y los tiempos de resolución."},
+{p:"mi-dinero", e:"guia", t:"El vendedor quiere adelantar sus cobros. Explícale paso a paso cómo solicitar el adelanto desde la app, las comisiones que aplican y cuándo se acredita."},
+{p:"mi-dinero", e:"guia", t:"Explica cómo ver el detalle de los movimientos de dinero: cobros, comisiones, retenciones, liberaciones y extracciones desde la app."},
+{p:"mi-dinero", e:"guia", t:"El débito fue por un reclamo que el vendedor perdió. Explícale por qué se debitó, si puede apelar y cómo evitar reclamos futuros."},
+{p:"mi-dinero", e:"guia", t:"El vendedor tiene dinero retenido por verificación de seguridad. Explícale el motivo, qué documentación puede necesitar y los tiempos de liberación."},
+{p:"mi-dinero", e:"cierre", t:"Confirma el estado actual del dinero del vendedor (disponible, retenido, en proceso) y dame un cierre con los tiempos reales de liberación si aplica."},
+{p:"mi-dinero", e:"cierre", t:"El caso de dinero retenido fue resuelto o escalado. Dame un cierre que genere tranquilidad sobre sus fondos y los próximos pasos."},
+{p:"mi-dinero", e:"redaccion", t:"Redacta un correo explicando por qué el dinero del vendedor está retenido y qué pasos debe seguir para liberarlo. Tono claro y tranquilizador estilo Meli."},
+{p:"mi-dinero", e:"redaccion", t:"Redacta un correo explicando cómo funcionan los adelantos de cobros: dónde solicitarlo, comisiones y tiempos de acreditación."},
+
+// ================= FUNCIONALIDADES GENERALES MP-SELLERS =================
+{p:"funcionalidades-mp", e:"bienvenida", t:"El vendedor tiene dudas sobre las funcionalidades de su cuenta de Mercado Pago. Dame una apertura que demuestre disposición para ayudarlo a configurar y aprovechar todas las herramientas disponibles."},
+{p:"funcionalidades-mp", e:"bienvenida", t:"El usuario quiere agregar colaboradores a su cuenta o modificar datos de su negocio. Dame una bienvenida que transmita facilidad en el proceso."},
+{p:"funcionalidades-mp", e:"exploracion", t:"Actúa como especialista en funcionalidades de cuenta Mercado Pago. Identifica si la consulta es sobre: colaboradores y permisos, datos del negocio, facturas, Punto Express, o configuraciones de cuenta. Dame las preguntas clave."},
+{p:"funcionalidades-mp", e:"exploracion", t:"El vendedor quiere agregar un colaborador. Pregúntale qué permisos necesita darle (solo ver, cobrar, administrar) para orientarlo correctamente."},
+{p:"funcionalidades-mp", e:"exploracion", t:"El usuario necesita modificar los datos de su negocio. Dame las preguntas para saber qué dato específico quiere cambiar (nombre comercial, dirección, rubro, etc.)."},
+{p:"funcionalidades-mp", e:"exploracion", t:"El vendedor pregunta por Punto Express. Dame las preguntas para verificar si ya está habilitado en su cuenta y si cumple los requisitos para activarlo."},
+{p:"funcionalidades-mp", e:"guia", t:"Explica paso a paso cómo agregar un colaborador a la cuenta de Mercado Pago: dónde encontrar la opción, cómo enviar la invitación y qué permisos puede asignar."},
+{p:"funcionalidades-mp", e:"guia", t:"El vendedor quiere modificar los permisos de un colaborador existente. Guíalo sobre cómo editar o eliminar colaboradores desde la configuración."},
+{p:"funcionalidades-mp", e:"guia", t:"Explica cómo actualizar los datos del negocio en Mercado Pago: nombre comercial, logo, dirección y datos fiscales."},
+{p:"funcionalidades-mp", e:"guia", t:"El usuario necesita descargar facturas de Mercado Pago (comisiones, compras de Point, etc.). Explícale dónde encontrarlas y cómo descargarlas."},
+{p:"funcionalidades-mp", e:"guia", t:"Explica cómo activar Punto Express mediante el formulario y los requisitos que debe cumplir el vendedor para habilitarlo en su cuenta."},
+{p:"funcionalidades-mp", e:"guia", t:"El vendedor quiere configurar su perfil público que ven los clientes. Explícale qué información puede personalizar y cómo hacerlo."},
+{p:"funcionalidades-mp", e:"cierre", t:"Confirma que la configuración solicitada (colaborador, datos, Punto Express) quedó realizada correctamente. Dame un cierre invitándolo a explorar otras funcionalidades."},
+{p:"funcionalidades-mp", e:"cierre", t:"Resume los cambios realizados en la cuenta y dame una frase de cierre asegurando que puede contactarnos si necesita más ajustes."},
+{p:"funcionalidades-mp", e:"redaccion", t:"Redacta un correo explicando cómo gestionar colaboradores en Mercado Pago: agregar, editar permisos y eliminar. Formato paso a paso estilo Meli."},
+{p:"funcionalidades-mp", e:"redaccion", t:"Redacta un correo con las instrucciones para activar Punto Express: requisitos, formulario de activación y beneficios para el vendedor. Tono Meli."},
+
+// ================= FUNCIONALIDADES ONLINE PAYMENTS =================
+{p:"online-payments", e:"bienvenida", t:"El vendedor tiene dudas sobre cómo cobrar online con Mercado Pago. Dame una apertura que demuestre entusiasmo por ayudarlo a expandir sus ventas al mundo digital."},
+{p:"online-payments", e:"bienvenida", t:"El usuario quiere integrar Mercado Pago en su sitio web o tienda online. Dame una bienvenida que transmita que es más fácil de lo que parece."},
+{p:"online-payments", e:"exploracion", t:"Actúa como especialista en Online Payments. Identifica si la consulta es sobre: link de pago, plazos de liberación de cobros online, integraciones/credenciales, o suscripciones de Mercado Pago. Dame las preguntas clave."},
+{p:"online-payments", e:"exploracion", t:"El vendedor quiere crear links de pago. Pregúntale para qué tipo de venta los usará (producto único, servicios, montos variables) para orientarlo mejor."},
+{p:"online-payments", e:"exploracion", t:"El usuario quiere integrar Mercado Pago en su plataforma. Dame las preguntas para identificar: qué plataforma usa (WooCommerce, Shopify, desarrollo propio), nivel técnico y tipo de integración que necesita."},
+{p:"online-payments", e:"exploracion", t:"El vendedor pregunta por suscripciones. Dame las preguntas para entender si quiere crear suscripciones para sus clientes o tiene dudas sobre una suscripción propia."},
+{p:"online-payments", e:"guia", t:"Explica paso a paso cómo crear un link de pago desde la app de Mercado Pago: dónde encontrar la opción, qué datos completar y cómo compartirlo con clientes."},
+{p:"online-payments", e:"guia", t:"Explica los plazos de liberación de cobros realizados con link de pago y cómo varían según la antigüedad del vendedor y el tipo de producto/servicio."},
+{p:"online-payments", e:"guia", t:"El vendedor quiere integrar Mercado Pago en su sitio. Explícale las opciones disponibles: plugins para plataformas conocidas, Checkout Pro, Checkout API, y cuál le conviene según su caso."},
+{p:"online-payments", e:"guia", t:"Explica cómo obtener las credenciales de integración (Public Key, Access Token) desde el panel de desarrolladores de Mercado Pago."},
+{p:"online-payments", e:"guia", t:"El vendedor quiere crear suscripciones para cobrar de forma recurrente. Explícale cómo configurar planes de suscripción y cómo se realizan los cobros automáticos."},
+{p:"online-payments", e:"guia", t:"El usuario tiene problemas con una integración existente. Dame los pasos básicos de troubleshooting: verificar credenciales, modo de prueba vs producción, logs de error."},
+{p:"online-payments", e:"cierre", t:"Confirma que el vendedor entendió cómo usar links de pago o tiene las credenciales para su integración. Dame un cierre invitándolo a probar y contactarnos si tiene problemas."},
+{p:"online-payments", e:"cierre", t:"Resume las opciones de cobro online que revisamos y dame una frase de cierre motivándolo a expandir sus ventas digitales."},
+{p:"online-payments", e:"redaccion", t:"Redacta un correo explicando cómo crear y compartir links de pago, incluyendo tips para aumentar la conversión (descripción clara, foto del producto, precio visible). Tono Meli."},
+{p:"online-payments", e:"redaccion", t:"Redacta un correo con los pasos para obtener las credenciales de integración y los recursos de documentación técnica disponibles para desarrolladores."},
+
+// ================= TASAS E INCENTIVOS SELLERS =================
+{p:"tasas-incentivos", e:"bienvenida", t:"El vendedor tiene dudas sobre las tasas o comisiones de Mercado Pago. Dame una apertura transparente que demuestre disposición para explicar claramente cómo funcionan los costos."},
+{p:"tasas-incentivos", e:"bienvenida", t:"El usuario pregunta por promociones o incentivos para vendedores. Dame una bienvenida entusiasta mostrando que hay beneficios disponibles para él."},
+{p:"tasas-incentivos", e:"exploracion", t:"Actúa como especialista en tasas e incentivos. Identifica si la consulta es sobre: promociones de reducción de tasas, tasas por medio de cobro, simulador de cobros, cuotas sin interés, negociación de tasas, programa Invita y Gana, programa de pricing por escalas, o comisiones mal cobradas. Dame las preguntas clave."},
+{p:"tasas-incentivos", e:"exploracion", t:"El vendedor quiere reducir sus tasas. Dame las preguntas para verificar si tiene promociones disponibles en CX y cuál es su volumen de ventas actual."},
+{p:"tasas-incentivos", e:"exploracion", t:"El usuario reporta comisiones mal cobradas. Dame las preguntas para identificar: qué transacción específica, qué tasa esperaba vs qué tasa le cobraron, y si era un cobro con meses sin interés."},
+{p:"tasas-incentivos", e:"exploracion", t:"El vendedor pregunta por el programa Invita y Gana. Dame las preguntas para saber si quiere información general, tiene problemas con su enlace, o no le acreditaron una premiación."},
+{p:"tasas-incentivos", e:"guia", t:"Explica de forma clara las tasas que maneja Mercado Pago según el medio de cobro: débito, crédito, cuotas, QR, link de pago. Usa ejemplos con montos para que sea más claro."},
+{p:"tasas-incentivos", e:"guia", t:"Explica cómo usar el simulador de cobros en la app para que el vendedor pueda calcular cuánto recibirá neto antes de hacer una venta."},
+{p:"tasas-incentivos", e:"guia", t:"El vendedor quiere ofrecer cuotas sin interés a sus clientes. Explícale cómo activarlo, qué costo tiene para él, y cómo impacta en sus ventas."},
+{p:"tasas-incentivos", e:"guia", t:"El usuario tiene una promoción de reducción de tasas disponible en CX. Guíalo paso a paso para aplicarla a su cuenta. Recuerda: solo se puede ofrecer si está habilitada en CX, no prometer menor financiamiento si no está disponible."},
+{p:"tasas-incentivos", e:"guia", t:"Explica cómo funciona el programa Invita y Gana Point: cómo compartir el enlace, qué debe hacer el invitado para que aplique la premiación, y dónde ver el estado de las acreditaciones."},
+{p:"tasas-incentivos", e:"guia", t:"Explica el programa de pricing por escalas: cómo funciona, qué volumen de ventas necesita para acceder a mejores tasas, y cómo ver su nivel actual."},
+{p:"tasas-incentivos", e:"guia", t:"El vendedor reporta comisiones mal cobradas por meses sin interés. Explícale cómo se calcula la comisión en cuotas sin interés y verifica si el cobro es correcto o requiere revisión."},
+{p:"tasas-incentivos", e:"guia", t:"El usuario quiere dejar de recibir contactos de revendedores de Point. Explícale cómo gestionar esta solicitud y el canal correcto para reportarlo."},
+{p:"tasas-incentivos", e:"cierre", t:"Confirma que el vendedor entendió las tasas que aplican a su cuenta y si tiene alguna promoción activa. Dame un cierre invitándolo a usar el simulador antes de sus ventas."},
+{p:"tasas-incentivos", e:"cierre", t:"La promoción de reducción de tasas fue aplicada exitosamente. Dame un cierre confirmando las nuevas tasas y desde cuándo aplican."},
+{p:"tasas-incentivos", e:"redaccion", t:"Redacta un correo explicando las tasas de Mercado Pago según el medio de cobro, con ejemplos claros de cuánto recibiría el vendedor en cada caso. Tono transparente estilo Meli."},
+{p:"tasas-incentivos", e:"redaccion", t:"Redacta un correo confirmando la aplicación de una promoción de reducción de tasas, detallando las nuevas tasas y su vigencia."},
+
+// ================= CHARGEBACK VENDEDOR =================
+{p:"chargeback", e:"bienvenida", t:"El vendedor recibió un contracargo y está preocupado. Dame una apertura empática reconociendo que esto puede ser estresante y que vamos a revisar su caso y opciones."},
+{p:"chargeback", e:"bienvenida", t:"El usuario no entiende por qué le debitaron dinero por un contracargo. Dame una bienvenida que transmita calma y disposición para explicarle el proceso."},
+{p:"chargeback", e:"exploracion", t:"Actúa como especialista en chargebacks. Identifica si el caso es: contracargo cubierto por protección al vendedor, contracargo no cubierto, consulta sobre cómo funciona la protección, o apelación de contracargo. Dame las preguntas diagnósticas."},
+{p:"chargeback", e:"exploracion", t:"El vendedor tiene un contracargo. Dame las preguntas para recopilar: fecha de la venta original, monto, medio de cobro (Point/QR/Online), si tiene comprobante de entrega, y motivo del contracargo."},
+{p:"chargeback", e:"exploracion", t:"El usuario quiere saber si está cubierto por la protección al vendedor. Dame las preguntas para verificar si cumple los requisitos según el tipo de venta y medio de cobro."},
+{p:"chargeback", e:"guia", t:"Explica qué es un contracargo (chargeback): por qué ocurre, quién lo inicia (banco del comprador), y cómo afecta al vendedor."},
+{p:"chargeback", e:"guia", t:"Explica cómo funciona la protección al vendedor de Mercado Pago: qué tipos de ventas están cubiertas, qué requisitos debe cumplir, y qué documentación necesita."},
+{p:"chargeback", e:"guia", t:"El contracargo NO está cubierto por la protección al vendedor. Explícale con transparencia por qué no aplica la cobertura y qué opciones tiene (apelar con documentación, asumir la pérdida). Importante: los contracargos por transferencias NO aplican para protección al vendedor."},
+{p:"chargeback", e:"guia", t:"El contracargo SÍ está cubierto por la protección al vendedor. Explícale el proceso: qué documentación debe enviar, tiempos de resolución, y que el dinero será devuelto si cumple los requisitos."},
+{p:"chargeback", e:"guia", t:"El vendedor quiere apelar un contracargo. Guíalo sobre qué documentación necesita presentar: comprobante de venta, comprobante de entrega, comunicaciones con el comprador, etc."},
+{p:"chargeback", e:"guia", t:"Explica cómo prevenir contracargos: verificar identidad del comprador en ventas grandes, guardar comprobantes de entrega, usar medios de envío con seguimiento."},
+{p:"chargeback", e:"cierre", t:"Resume el estado del contracargo (cubierto/no cubierto, en revisión, resuelto) y dame un cierre con los tiempos reales de resolución."},
+{p:"chargeback", e:"cierre", t:"El contracargo fue resuelto a favor del vendedor. Dame un cierre positivo confirmando la devolución del dinero y tips para evitar futuros contracargos."},
+{p:"chargeback", e:"redaccion", t:"Redacta un correo explicando qué es un contracargo, por qué ocurrió en este caso específico, y qué opciones tiene el vendedor. Tono empático y claro estilo Meli."},
+{p:"chargeback", e:"redaccion", t:"Redacta un correo confirmando que el contracargo fue resuelto a favor del vendedor, incluyendo el monto devuelto y recomendaciones para prevenir futuros casos."},
+
+// ================= EXTRACTOS Y REPORTES =================
+{p:"extractos-reportes", e:"bienvenida", t:"El vendedor necesita información sobre sus extractos o reportes de transacciones. Dame una apertura que demuestre disposición para ayudarlo a obtener la información que necesita."},
+{p:"extractos-reportes", e:"bienvenida", t:"El usuario necesita documentación de sus movimientos para fines contables o fiscales. Dame una bienvenida que transmita facilidad para obtener estos documentos."},
+{p:"extractos-reportes", e:"exploracion", t:"Actúa como especialista en reportes. Identifica si la consulta es sobre: estados de cuenta, reportes de transacciones, boletas de venta, certificados de retenciones, o reportes para conciliación. Dame las preguntas clave."},
+{p:"extractos-reportes", e:"exploracion", t:"El vendedor necesita un reporte específico. Pregúntale: qué período necesita, qué información busca (ventas, comisiones, impuestos), y para qué lo necesita (contabilidad, declaración fiscal, conciliación)."},
+{p:"extractos-reportes", e:"exploracion", t:"El usuario no encuentra un movimiento en su extracto. Dame las preguntas para identificar: fecha aproximada, monto, tipo de operación (cobro, devolución, comisión)."},
+{p:"extractos-reportes", e:"guia", t:"Explica cómo generar reportes de transacciones detallados: filtros disponibles (fecha, tipo de operación, estado), formatos de descarga (PDF, Excel, CSV) y para qué sirve cada uno."},
+{p:"extractos-reportes", e:"guia", t:"El vendedor necesita boletas de sus ventas. Explícale dónde encontrarlas, cómo descargarlas y cómo configurar la emisión automática si aplica."},
+{p:"extractos-reportes", e:"guia", t:"Explica cómo obtener el certificado de retenciones de Mercado Pago para la declaración fiscal del vendedor: dónde encontrarlo y qué información contiene."},
+{p:"extractos-reportes", e:"guia", t:"El vendedor necesita conciliar sus ventas con su sistema contable. Explícale qué reportes le sirven y cómo interpretar los campos principales (fecha, monto bruto, comisiones, monto neto)."},
+{p:"extractos-reportes", e:"guia", t:"El usuario no encuentra un movimiento específico. Guíalo sobre cómo usar los filtros de búsqueda y qué hacer si el movimiento no aparece (verificar fechas, tipo de operación, cuenta correcta)."},
+{p:"extractos-reportes", e:"cierre", t:"Confirma que el vendedor pudo descargar los reportes o extractos que necesitaba. Dame un cierre recordándole que puede generar estos reportes cuando lo necesite."},
+{p:"extractos-reportes", e:"cierre", t:"Resume los reportes disponibles que revisamos y dame una frase de cierre ofreciendo ayuda si tiene dudas al interpretar la información."},
+{p:"extractos-reportes", e:"redaccion", t:"Redacta un correo explicando cómo descargar estados de cuenta y reportes de transacciones, con pasos claros y capturas de pantalla si es posible. Tono Meli."},
+{p:"extractos-reportes", e:"redaccion", t:"Redacta un correo explicando cómo obtener la documentación fiscal necesaria (boletas, certificados de retención) desde Mercado Pago."},
+
+// ================= ENTRADA Y SALIDA DE DINERO FÍSICO =================
+{p:"entrada-salida-dinero", e:"bienvenida", t:"El vendedor tiene dudas sobre ingresos o extracciones de efectivo. Dame una apertura que demuestre que entendemos la importancia de manejar su efectivo de forma fácil y segura."},
+{p:"entrada-salida-dinero", e:"bienvenida", t:"El usuario tiene un problema con un ingreso o extracción de dinero. Dame una bienvenida empática reconociendo la preocupación cuando se trata de efectivo."},
+{p:"entrada-salida-dinero", e:"exploracion", t:"Actúa como especialista en movimientos de efectivo. Identifica si el caso es: ingreso en proceso, ingreso no acreditado, extracción no entregada, ingreso rechazado/cancelado, extracción rechazada/cancelada, o consulta general sobre cómo ingresar/extraer dinero. Dame las preguntas diagnósticas."},
+{p:"entrada-salida-dinero", e:"exploracion", t:"El usuario hizo un ingreso de efectivo que no se acreditó. Dame las preguntas clave: dónde lo hizo (cajero, punto de recarga), fecha y hora, monto exacto, si tiene comprobante."},
+{p:"entrada-salida-dinero", e:"exploracion", t:"El vendedor intentó extraer dinero y no se lo entregaron pero se debitó de su cuenta. Dame las preguntas para recopilar: ubicación del cajero/punto, fecha y hora exacta, monto, si tiene comprobante del intento fallido."},
+{p:"entrada-salida-dinero", e:"exploracion", t:"El ingreso o extracción fue rechazado. Dame las preguntas para identificar el motivo: mensaje de error que apareció, si es la primera vez que le pasa, monto que intentaba mover."},
+{p:"entrada-salida-dinero", e:"guia", t:"Explica las diferentes formas de ingresar efectivo a Mercado Pago: cajeros automáticos, puntos de recarga, y los límites y comisiones de cada opción."},
+{p:"entrada-salida-dinero", e:"guia", t:"Explica las opciones para extraer efectivo de Mercado Pago: cajeros automáticos, puntos de extracción, límites diarios y comisiones que aplican."},
+{p:"entrada-salida-dinero", e:"guia", t:"El ingreso de efectivo está en proceso. Explica los tiempos normales de acreditación según el canal usado y cuándo se considera una demora anormal."},
+{p:"entrada-salida-dinero", e:"guia", t:"El usuario hizo una extracción y el cajero no entregó el dinero. Explica el proceso de reclamo: tiempos de reversión automática vs investigación manual, y qué documentación puede necesitar."},
+{p:"entrada-salida-dinero", e:"guia", t:"El ingreso fue rechazado por seguridad. Explica los posibles motivos (límites, verificación de identidad pendiente) y cómo liberar la restricción desde CX si está disponible."},
+{p:"entrada-salida-dinero", e:"guia", t:"La extracción fue rechazada o cancelada. Explica los motivos comunes (límite diario, fondos insuficientes, restricción de seguridad) y cómo resolverlo."},
+{p:"entrada-salida-dinero", e:"cierre", t:"Confirma el estado del ingreso o extracción (acreditado, en proceso, rechazado) y dame un cierre con los tiempos reales si debe esperar."},
+{p:"entrada-salida-dinero", e:"cierre", t:"El problema de ingreso/extracción fue resuelto o escalado. Dame un cierre que genere tranquilidad sobre su dinero y los próximos pasos."},
+{p:"entrada-salida-dinero", e:"redaccion", t:"Redacta un correo explicando las opciones para ingresar y extraer efectivo de Mercado Pago, incluyendo límites, comisiones y puntos disponibles. Tono Meli."},
+{p:"entrada-salida-dinero", e:"redaccion", t:"Redacta un correo sobre el estado de un reclamo por extracción no entregada, incluyendo el proceso de investigación y tiempos de resolución."},
+
+// ================= TRANSFERENCIAS DE DINERO =================
+{p:"transferencias", e:"bienvenida", t:"El vendedor tiene dudas sobre transferencias de dinero. Dame una apertura que demuestre disposición para ayudarlo a mover su dinero de forma fácil y segura."},
+{p:"transferencias", e:"bienvenida", t:"El usuario tiene un problema con una transferencia (no llegó, rechazada, devuelta). Dame una bienvenida empática reconociendo la preocupación cuando el dinero no está donde debería."},
+{p:"transferencias", e:"exploracion", t:"Actúa como especialista en transferencias. Identifica si el caso es: transferencia no acreditada (dentro o fuera de plazo), cómo ingresar/transferir dinero, transferencia rechazada, ingreso devuelto/cancelado, transferencia reembolsada, cashback por ingreso, comprobantes de transferencia, remesas no acreditadas/rechazadas, o dinero en otra cuenta de la misma titularidad. Dame las preguntas diagnósticas clave."},
+{p:"transferencias", e:"exploracion", t:"La transferencia no se acreditó. Dame las preguntas para recopilar: fecha y hora, monto exacto, cuenta de origen (banco/CVU/alias), cuenta de destino, si tiene comprobante."},
+{p:"transferencias", e:"exploracion", t:"El usuario hizo una transferencia a datos incorrectos por error propio. Dame las preguntas para evaluar el caso: a quién le transfirió, si conoce al destinatario, monto, y cuánto tiempo pasó."},
+{p:"transferencias", e:"exploracion", t:"La transferencia fue rechazada o devuelta. Dame las preguntas para identificar el motivo: mensaje de error, si los datos del destinatario son correctos, si tiene alguna restricción en la cuenta."},
+{p:"transferencias", e:"exploracion", t:"El usuario pregunta por una campaña de cashback por ingreso de dinero. Dame las preguntas para verificar si cumple los requisitos de la promoción."},
+{p:"transferencias", e:"guia", t:"Explica cómo hacer una transferencia desde Mercado Pago: por CVU, alias, o contacto. Incluye los límites y si hay comisiones."},
+{p:"transferencias", e:"guia", t:"Explica los plazos normales de acreditación de transferencias: inmediatas vs diferidas, transferencias entre MP vs a bancos, y cuándo se considera realmente una demora."},
+{p:"transferencias", e:"guia", t:"La transferencia fue a un destino incorrecto por error del usuario. Explica con transparencia las opciones reales: contactar al destinatario, gestión con entidad receptora. Importante: no generar falsas expectativas de recuperación automática del dinero. No podemos brindar información de otras cuentas de MP si el titular no lo autoriza."},
+{p:"transferencias", e:"guia", t:"La transferencia fue rechazada por seguridad. Explica cómo liberar la restricción desde CX si está disponible, o qué verificación necesita completar el usuario."},
+{p:"transferencias", e:"guia", t:"Explica cómo obtener y descargar el comprobante de una transferencia realizada desde la app de Mercado Pago."},
+{p:"transferencias", e:"guia", t:"El usuario tiene dinero en otra cuenta de Mercado Pago de su misma titularidad y quiere pasarlo. Explica cómo realizar el traspaso de saldos entre cuentas propias. Importante: no podemos traspasar dinero a cuentas que no sean de la misma titularidad."},
+{p:"transferencias", e:"guia", t:"Explica cómo funcionan las remesas internacionales en Mercado Pago: cómo hacerlas, tiempos de acreditación, y qué hacer si una remesa no se acreditó o fue rechazada."},
+{p:"transferencias", e:"cierre", t:"Confirma el estado de la transferencia (acreditada, en proceso, rechazada) y dame un cierre con tiempos reales honestos, sin prometer algo que no podamos garantizar."},
+{p:"transferencias", e:"cierre", t:"El problema de transferencia fue resuelto o escalado. Dame un cierre que genere tranquilidad y explique claramente los próximos pasos y tiempos de resolución."},
+{p:"transferencias", e:"redaccion", t:"Redacta un correo explicando el estado de una transferencia que estaba pendiente de acreditación, confirmando si ya se acreditó o los tiempos estimados. Tono claro y cercano estilo Meli."},
+{p:"transferencias", e:"redaccion", t:"Redacta un correo explicando por qué una transferencia fue rechazada y qué pasos debe seguir el usuario para reintentar o resolver la restricción."},
+{p:"transferencias", e:"redaccion", t:"Redacta un correo explicando las opciones cuando una transferencia fue enviada a un destino incorrecto por error del usuario, siendo transparente sobre las limitaciones reales de recuperación."},
+];
+
+// Asignar IDs únicos
+prompts.forEach((p,i)=> p.id = i);
+
+const procesoLabels = {
+  general:"🔷 General", "point-adquirir": "🖥️ point adquirir", "point-usar": "💳 point usar", "point-mantenimiento": "🔧 point mantenimiento", "point-logistica": "📦 point logística", "point-resellers": "🤝 point resellers","funcionalidades-point": "⚡ funcionalidades point","seller-wallet": "👜 seller wallet","acreditacion-cobro": "✅ acreditación cobro","anulacion-cobros": "❌ anulación cobros","mi-dinero": "💰 mi dinero","funcionalidades-mp": "🛠️ funcionalidades mp","online-payments": "🌐 online payments","tasas-incentivos": "📊 tasas e incentivos","chargeback": "🔄 chargeback","extractos-reportes": "📄 extractos y reportes","entrada-salida-dinero": "💸 entrada/salida dinero","transferencias": "➡️ transferencias"
+};
+const etapaLabels = {
+  bienvenida:"🟢 Bienvenida", exploracion:"🔍 Exploración", guia:"🧭 Guía",
+  cierre:"🔚 Cierre", redaccion:"✉️ Redacción"
+};
+const procesoOrder = ["general","point-adquirir","point-usar","point-mantenimiento", "point-logistica","point-resellers","funcionalidades-point","seller-wallet","acreditacion-cobro","anulacion-cobros","mi-dinero","funcionalidades-mp","online-payments","tasas-incentivos","chargeback","extractos-reportes","entrada-salida-dinero","transferencias"];
+
+let activeProceso = "all";
+let activeEtapa = "all";
+let searchTerm = "";
+let onlyFavs = false;
+let favs = JSON.parse(localStorage.getItem("copilotFavs") || "[]");
+
+function buildFilterPills() {
+  const procesoBox = document.getElementById("procesoFilters");
+  procesoBox.innerHTML = `<button class="pill proceso active" data-value="all">Todos</button>` +
+    procesoOrder.map(k => `<button class="pill proceso" data-value="${k}">${procesoLabels[k]}</button>`).join("");
+
+  const etapaBox = document.getElementById("etapaFilters");
+  etapaBox.innerHTML = `<button class="pill etapa active" data-value="all">Todas</button>` +
+    Object.keys(etapaLabels).map(k => `<button class="pill etapa" data-value="${k}">${etapaLabels[k]}</button>`).join("");
+
+  procesoBox.querySelectorAll(".pill").forEach(btn => {
+    btn.addEventListener("click", () => {
+      procesoBox.querySelectorAll(".pill").forEach(b=>b.classList.remove("active"));
+      btn.classList.add("active");
+      activeProceso = btn.dataset.value;
+      render();
+    });
+  });
+  etapaBox.querySelectorAll(".pill").forEach(btn => {
+    btn.addEventListener("click", () => {
+      etapaBox.querySelectorAll(".pill").forEach(b=>b.classList.remove("active"));
+      btn.classList.add("active");
+      activeEtapa = btn.dataset.value;
+      render();
+    });
+  });
+}
+
+function toggleFav(id) {
+  if (favs.includes(id)) favs = favs.filter(f=>f!==id);
+  else favs.push(id);
+  localStorage.setItem("copilotFavs", JSON.stringify(favs));
+}
+
+function render() {
+  const container = document.getElementById("container");
+  const noResults = document.getElementById("noResults");
+  const resultCount = document.getElementById("resultCount");
+  container.innerHTML = "";
+
+  let filtered = prompts.filter(p => {
+    const mProc = activeProceso==="all" || p.p===activeProceso;
+    const mEtapa = activeEtapa==="all" || p.e===activeEtapa;
+    const mSearch = p.t.toLowerCase().includes(searchTerm.toLowerCase());
+    const mFav = !onlyFavs || favs.includes(p.id);
+    return mProc && mEtapa && mSearch && mFav;
+  });
+
+  resultCount.textContent = `Mostrando ${filtered.length} de ${prompts.length} prompts`;
+
+  if (filtered.length === 0) { noResults.style.display="block"; return; }
+  noResults.style.display = "none";
+
+  procesoOrder.forEach(procKey => {
+    const items = filtered.filter(p => p.p === procKey);
+    if (items.length === 0) return;
+
+    const section = document.createElement("div");
+    section.className = "section";
+    section.innerHTML = `<div class="section-title">${procesoLabels[procKey]} <span class="count">${items.length}</span></div>
+      <div class="grid" id="grid-${procKey}"></div>`;
+    container.appendChild(section);
+
+    const grid = section.querySelector(`#grid-${procKey}`);
+    items.forEach(p => {
+      const card = document.createElement("div");
+      card.className = `card ${p.e}`;
+      const isFav = favs.includes(p.id);
+      card.innerHTML = `
+        <button class="star-btn ${isFav?'active':''}">${isFav?'⭐':'☆'}</button>
+        <div class="badges">
+          <span class="badge etapa-${p.e}">${etapaLabels[p.e]}</span>
+        </div>
+        <div class="prompt-text">${p.t}</div>
+        <button class="copy-btn">📋 Copiar prompt</button>
+      `;
+      card.querySelector(".star-btn").addEventListener("click", (e)=>{
+        toggleFav(p.id);
+        render();
+      });
+      card.querySelector(".copy-btn").addEventListener("click", (e)=>{
+        navigator.clipboard.writeText(p.t);
+        e.target.textContent = "✅ Copiado";
+        e.target.classList.add("copied");
+        setTimeout(()=>{ e.target.textContent="📋 Copiar prompt"; e.target.classList.remove("copied"); }, 1500);
+      });
+      grid.appendChild(card);
+    });
+  });
+}
+
+document.getElementById("searchBox").addEventListener("input", (e)=>{ searchTerm=e.target.value; render(); });
+document.getElementById("favToggle").addEventListener("click", (e)=>{
+  onlyFavs = !onlyFavs;
+  e.target.classList.toggle("active", onlyFavs);
+  render();
+});
+
+buildFilterPills();
+render();
+</script>
+
+</body>
+</html>
